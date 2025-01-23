@@ -1,0 +1,365 @@
+library SaveLoadPreprocess requires SaveLoadLimited
+
+function Get_Img_From_Unit_Type takes string unit_type_str returns string
+    local integer unit_type = S2I(unit_type_str)
+    if unit_type == 'H001' then
+        return "BTNHero_A.blp"
+    // 쑤 무청
+    elseif unit_type == 'H005' then
+        return "BTNHero_B.blp"
+    // 아담    
+    elseif unit_type == 'H006' then
+        return "BTNHero_C.blp"
+    // 카밀라
+    elseif unit_type == 'H00I' then
+        return "BTNHero_D.blp"
+    // 뫼비우스
+    elseif unit_type == 'H011' then
+        return "BTNHero_E.blp"
+    // 보레아스
+    elseif unit_type == 'H01M' then
+        return "BTNHero_F.blp"
+    // 아르카나
+    elseif unit_type == 'H01R' then
+        return "BTNHero_G.blp"
+    // 홍련
+    elseif unit_type == 'H01S' then
+        return "BTNHero_H.blp"
+    // 프로메테우스
+    elseif unit_type == 'H01T' then
+        return "BTNHero_I.blp"
+    endif
+    
+    return ""
+endfunction
+
+function Get_Name_From_Unit_Type takes string unit_type_str returns string
+    local integer unit_type = S2I(unit_type_str)
+    local string unit_name
+    
+    if unit_type == 'H001' then
+        set unit_name = "라이더"
+    elseif unit_type == 'H005' then
+        set unit_name = "쑤 무청"
+    elseif unit_type == 'H006' then
+        set unit_name = "아담"
+    elseif unit_type == 'H00I' then
+        set unit_name = "카밀라"
+    elseif unit_type == 'H011' then
+        set unit_name = "뫼비우스"
+    elseif unit_type == 'H01M' then
+        set unit_name = "보레아스"
+    elseif unit_type == 'H01R' then
+        set unit_name = "아르카나"
+    elseif unit_type == 'H01S' then
+        set unit_name = "홍련"
+    elseif unit_type == 'H01T' then
+        set unit_name = "프로메테우스"
+    endif
+    
+    return unit_name
+endfunction
+
+// =====================================================================
+
+
+
+private function User_Custom_Int_Sync takes nothing returns nothing
+    local string sync_str = DzGetTriggerSyncData()
+    local integer pid = S2I( JNStringSplit(sync_str, "#", 0) )
+    local integer drop_int = S2I( JNStringSplit(sync_str, "#", 1) )
+    local integer gold_int = S2I( JNStringSplit(sync_str, "#", 2) )
+    local integer GOD_INT1 = S2I( JNStringSplit(sync_str, "#", 3) )
+    local integer GOD_INT2 = S2I( JNStringSplit(sync_str, "#", 4) )
+    local integer GOD_INT3 = S2I( JNStringSplit(sync_str, "#", 5) )
+    local integer ITEM_A_COUNT = S2I( JNStringSplit(sync_str, "#", 6) )
+    local integer ITEM_B_COUNT = S2I( JNStringSplit(sync_str, "#", 7) )
+
+    set udg_Player_Drop_INT[pid+1] = drop_int
+    set udg_Player_Gold_INT[pid+1] = gold_int
+    set udg_GOD_INT1[pid+1] = GOD_INT1
+    set udg_GOD_INT2[pid+1] = GOD_INT2
+    set udg_GOD_INT3[pid+1] = GOD_INT3
+    set udg_ITEM_A_COUNT[pid+1] = ITEM_A_COUNT
+    set udg_ITEM_B_COUNT[pid+1] = ITEM_B_COUNT
+    
+endfunction
+
+private function User_Custom_Int_Register takes integer pid returns nothing
+    local boolean is_data_exist = false
+    local string str = ""
+    local string drop_int
+    local string gold_int
+    local string GOD_INT1
+    local string GOD_INT2
+    local string GOD_INT3
+    local string ITEM_A_COUNT
+    local string ITEM_B_COUNT
+    
+    call JNObjectUserInit( Get_Map_Id(), Get_User_Id(), Get_Secret_Key(), "0" )
+    
+    set drop_int = I2S(JNObjectUserGetInt(Get_User_Id(), "user_drop_int"))
+    set gold_int = I2S(JNObjectUserGetInt(Get_User_Id(), "user_gold_int"))
+    set GOD_INT1 = I2S(JNObjectUserGetInt(Get_User_Id(), "GOD_INT1"))
+    set GOD_INT2 = I2S(JNObjectUserGetInt(Get_User_Id(), "GOD_INT2"))
+    set GOD_INT3 = I2S(JNObjectUserGetInt(Get_User_Id(), "GOD_INT3"))
+    set ITEM_A_COUNT = I2S(JNObjectUserGetInt(Get_User_Id(), "ITEM_A_COUNT"))
+    set ITEM_B_COUNT = I2S(JNObjectUserGetInt(Get_User_Id(), "ITEM_B_COUNT"))
+    
+    set str = I2S(pid) + "#" + drop_int + "#" + gold_int + "#" + GOD_INT1 + "#" + GOD_INT2 + "#" + GOD_INT3
+    set str = str + "#" + ITEM_A_COUNT + "#" + ITEM_B_COUNT
+    
+    call DzSyncData( "cusint", str )
+endfunction
+
+private function Load_User_Object takes nothing returns nothing
+    local integer pid
+    
+    set pid = -1
+    loop
+    set pid = pid + 1
+    exitwhen pid >= 6
+        if GetPlayerController(Player(pid)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(pid)) == PLAYER_SLOT_STATE_PLAYING then
+            if GetLocalPlayer() == Player(pid) then
+                call User_Custom_Int_Register(pid)
+                call User_Limited_Character_Register(pid)
+            endif
+        endif
+    endloop
+endfunction
+
+private function User_Resource_Data_Sync takes nothing returns nothing
+    local string sync_str = DzGetTriggerSyncData()
+    local integer pid = S2I( JNStringSplit(sync_str, "#", 0) )
+    local string data_str = JNStringSplit(sync_str, "#", 1)
+    
+    call Set_Resource_Data_String( pid, data_str )
+endfunction
+
+private function User_Character_Data_Sync takes nothing returns nothing
+    local string sync_str = DzGetTriggerSyncData()
+    local integer pid = S2I( JNStringSplit(sync_str, "[", 0) )
+    local integer index = S2I( JNStringSplit(sync_str, "[", 1) )
+    local string data_str = JNStringSplit(sync_str, "[", 2)
+
+    call Set_Character_Data_String( pid, index, data_str )
+endfunction
+
+private function User_Character_Data_Register takes integer pid, integer index returns nothing
+    local integer i
+    local integer unit_level
+    local integer unit_type
+    local integer unit_exp
+    local integer unit_str
+    local integer unit_agi
+    local integer unit_int
+    local integer unit_hero_state
+    local integer unit_gold
+    local integer unit_lumber
+    local integer array unit_item
+    local integer array bag_0_item
+    local integer array bag_1_item
+    local string str
+    
+    
+    // =================
+    // 캐릭터 정보 로드
+    // =================
+    
+    call JNObjectCharacterInit( Get_Map_Id(), Get_User_Id(), Get_Secret_Key(), Get_Characater_Index(index) )
+    
+    set unit_level = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_LEVEL") 
+    set unit_type = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_TYPE")
+    set unit_exp = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_EXP")
+    set unit_str = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_STR")
+    set unit_agi = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_AGI")
+    set unit_int = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_INT")
+    set unit_hero_state = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_HERO_STATE")
+    set unit_gold = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_GOLD")
+    set unit_lumber = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_LUMBER")
+    
+    set i = -1
+    loop
+    set i = i + 1
+    exitwhen i >= 6
+        set unit_item[6] = JNObjectCharacterGetInt( Get_User_Id(), "UNIT_ITEM" + I2S(i) )
+        set bag_0_item[6] = JNObjectCharacterGetInt( Get_User_Id(), "BAG_0_ITEM" + I2S(i) )
+        set bag_1_item[6] = JNObjectCharacterGetInt( Get_User_Id(), "BAG_1_ITEM" + I2S(i) )
+    endloop
+    
+
+    
+    // ==========================
+    // 캐릭터 정보 스트링 만들기
+    // ==========================
+    
+    set str = I2S(unit_level) + "/" + I2S(unit_type) + "/" + I2S(unit_exp) + "/" + I2S(unit_str) + "/" /*
+    */ + I2S(unit_agi) + "/" + I2S(unit_int) + "/" + I2S(unit_hero_state) + "/" /*
+    */ + I2S(unit_gold) + "/" + I2S(unit_lumber) + "/"
+    
+    set i = -1
+    loop
+    set i = i + 1
+    exitwhen i >= 6
+        set str = str + I2S(unit_item[i]) + "/"
+    endloop
+    
+    set i = -1
+    loop
+    set i = i + 1
+    exitwhen i >= 6
+        set str = str + I2S(bag_0_item[i]) + "/"
+    endloop
+    
+    set i = -1
+    loop
+    set i = i + 1
+    exitwhen i >= 6
+        set str = str + I2S(bag_1_item[i]) + "/"
+    endloop
+    
+    call DzSyncData( "char", I2S(pid) + "[" + I2S(index) + "[" + str )
+endfunction
+
+private function Upper_Alphabet_Matching takes string char returns string
+    if char == "A" then
+        return "a"
+    elseif char == "B" then
+        return "b"
+    elseif char == "C" then
+        return "c"
+    elseif char == "D" then
+        return "d"
+    elseif char == "E" then
+        return "e"
+    elseif char == "F" then
+        return "f"
+    elseif char == "G" then
+        return "g"
+    elseif char == "H" then
+        return "h"
+    elseif char == "I" then
+        return "i"
+    elseif char == "J" then
+        return "j"
+    elseif char == "K" then
+        return "k"
+    elseif char == "L" then
+        return "l"
+    elseif char == "M" then
+        return "m"
+    elseif char == "N" then
+        return "n"
+    elseif char == "O" then
+        return "o"
+    elseif char == "P" then
+        return "p"
+    elseif char == "Q" then
+        return "q"
+    elseif char == "R" then
+        return "r"
+    elseif char == "S" then
+        return "s"
+    elseif char == "T" then
+        return "t"
+    elseif char == "U" then
+        return "u"
+    elseif char == "V" then
+        return "v"
+    elseif char == "W" then
+        return "w"
+    elseif char == "X" then
+        return "x"
+    elseif char == "Y" then
+        return "y"
+    elseif char == "Z" then
+        return "z"
+    endif
+    
+    return char
+endfunction
+
+private function Lower_Case_Work takes string str returns string
+    local integer i
+    local string lower_case_str = ""
+    
+    set i = -1
+    loop
+    set i = i + 1
+    exitwhen i >= StringLength(str)
+        set lower_case_str = lower_case_str + Upper_Alphabet_Matching( SubString(str, i, i+1) )
+    endloop
+    
+    return lower_case_str
+endfunction
+
+// 유저의 아이디 기록
+private function User_Id_Register takes integer j returns nothing
+    if JNCheckNameHack( GetPlayerName( Player(j) ) ) == false then
+        call Set_User_ID( Lower_Case_Work( GetPlayerName( Player(j) ) ) )
+    endif
+endfunction
+
+// 유저 데이터들을 일단 로드해온후 기록
+private function User_Data_Load takes nothing returns nothing
+    local integer count = Get_Character_Count()
+    local integer pid
+    local integer index
+    
+    // 일단 잘 모르니 1번 플레이어 부터 12번 플레이어까지 돌림
+    set pid = -1
+    loop
+    set pid = pid + 1
+    exitwhen pid >= 6
+        
+        // 실제 사용자인지 판별하는 if 문
+        if GetPlayerController(Player(pid)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(pid)) == PLAYER_SLOT_STATE_PLAYING then
+            // 각플
+            if GetLocalPlayer() == Player(pid) then
+                call User_Id_Register(pid)
+                
+                set index = -1
+                loop
+                set index = index + 1
+                exitwhen index >= count
+                    call User_Character_Data_Register(pid, index)
+                endloop
+            endif
+        endif
+    endloop
+    
+    // 유저 오브젝트
+    call TimerStart(CreateTimer(), 1.0, false, function Load_User_Object)
+endfunction
+
+private function Sync_Trigger_Init takes nothing returns nothing
+    local trigger trg
+    
+    // 캐릭터 정보 동기화
+    set trg = CreateTrigger()
+    call DzTriggerRegisterSyncData(trg, "char", false)
+    call TriggerAddAction( trg, function User_Character_Data_Sync )
+    
+    // 커스텀 정수 동기화
+    set trg = CreateTrigger()
+    call DzTriggerRegisterSyncData(trg, "cusint", false)
+    call TriggerAddAction( trg, function User_Custom_Int_Sync )
+    
+    // 해금 캐릭터 동기화
+    set trg = CreateTrigger()
+    call DzTriggerRegisterSyncData(trg, "lchar", false)
+    call TriggerAddAction( trg, function User_Limited_Character_Sync )
+    
+    set trg = null
+endfunction
+
+function Save_Load_Preprocess_Init takes nothing returns nothing
+    if Is_Battle_Net() == false then
+        return
+    endif
+
+    call Sync_Trigger_Init()
+    call User_Data_Load()
+endfunction
+
+endlibrary
