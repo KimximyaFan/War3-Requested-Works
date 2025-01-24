@@ -8,14 +8,14 @@ endglobals
 
 
 function Save_Load_Build takes integer pid, integer current_character_index returns nothing
-    local integer unit_type = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_UNIT_TYPE ) )
-    local integer unit_exp = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_EXP ) )
-    local integer unit_str = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_STR ) )
-    local integer unit_agi = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_AGI ) )
-    local integer unit_int = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_INT ) )
-    local integer unit_hero_state = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_HERO_STATE ) )
-    local integer unit_gold = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_GOLD ) )
-    local integer unit_lumber = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_LUMBER ) )
+    local integer unit_type = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_UNIT_TYPE )
+    local integer unit_exp = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_EXP )
+    local integer unit_str = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_STR )
+    local integer unit_agi = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_AGI )
+    local integer unit_int = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_INT )
+    local integer unit_hero_state = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_HERO_STATE )
+    local integer unit_gold = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_GOLD )
+    local integer unit_lumber = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_LUMBER )
     local unit u
     local integer item_type
     local integer i
@@ -41,7 +41,9 @@ function Save_Load_Build takes integer pid, integer current_character_index retu
     loop
     set i = i + 1
     exitwhen i >= 6
-        set item_type = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_USER_ITEM_0 + i ) )
+        set item_type = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_USER_ITEM_0 + i )
+        
+        call BJDebugMsg("item_type : " + I2S(item_type))
         
         if item_type != -1 then
             call UnitAddItemToSlotById(u, item_type, i )
@@ -55,7 +57,7 @@ function Save_Load_Build takes integer pid, integer current_character_index retu
     loop
     set i = i + 1
     exitwhen i >= 6
-        set item_type = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_BAG_0_ITEM_0 + i ) )
+        set item_type = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_BAG_0_ITEM_0 + i )
         
         if item_type != -1 then
             call UnitAddItemToSlotById(udg_Player_Bag[pid+1], item_type, i )
@@ -69,7 +71,7 @@ function Save_Load_Build takes integer pid, integer current_character_index retu
     loop
     set i = i + 1
     exitwhen i >= 6
-        set item_type = S2I( Get_Character_Data_Property( pid, current_character_index, CHARACTER_DATA_BAG_1_ITEM_0 + i ) )
+        set item_type = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_BAG_1_ITEM_0 + i )
         
         if item_type != -1 then
             call UnitAddItemToSlotById(udg_Player_ITEM_MIX[pid+1], item_type, i )

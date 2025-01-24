@@ -1,6 +1,9 @@
 library SaveLoadGeneric
 
 globals
+    
+    hashtable SLHT = InitHashtable()
+    
     integer user_custom_int_0
     integer user_custom_int_1
     integer user_custom_int_2
@@ -87,12 +90,8 @@ function Set_Player_Unit takes integer pid, unit u returns nothing
     endif
 endfunction
 
-function Set_Resource_Data_String takes integer pid, string str returns nothing
-    set resource_data_str[pid] = str
-endfunction
-
-function Set_Character_Data_String takes integer pid, integer index, string str returns nothing
-    set character_data_str[pid][index] = str
+function Set_Character_Data takes integer pid, integer index, integer field, integer value returns nothing
+    call SaveInteger(SLHT, pid * 10 + index, field, value)
 endfunction
 
 function Set_User_ID takes string str returns nothing
@@ -113,16 +112,8 @@ function Get_Player_Unit takes nothing returns unit
     return player_unit
 endfunction
 
-function Get_Resource_Data_Property takes integer pid, integer property returns string
-    return JNStringSplit(resource_data_str[pid], "/", property)
-endfunction
-
-function Get_Character_Data_Property takes integer pid, integer index, integer property returns string
-    return JNStringSplit(character_data_str[pid][index], "/", property)
-endfunction
-
-function Get_Resource_String takes nothing returns string
-    return resource
+function Get_Character_Data takes integer pid, integer index, integer field returns integer
+    return LoadInteger(SLHT, pid * 10 + index, field)
 endfunction
 
 function Get_Characater_Index takes integer index returns string

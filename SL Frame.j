@@ -47,6 +47,7 @@ private function Load_Button_Clicked takes nothing returns nothing
     
     call Set_Current_Character_Index(button_index)
     call DzFrameShow(save_button, true)
+    call JNObjectCharacterInit( Get_Map_Id(), Get_User_Id(), Get_Secret_Key(), Get_Characater_Index(button_index) )
     
     if is_empty[button_index] == true then
         call DzSyncData("new", I2S(pid) + "/" )
@@ -79,10 +80,10 @@ private function Load_Frames takes nothing returns nothing
     local real icon_back_size = 0.050
     local integer i
     local integer pid
-    local string unit_type
+    local integer unit_type
     local string name
-    local string level
-    local string temp
+    local integer level
+    local integer temp
     
     set load_box = DzCreateFrameByTagName("BACKDROP", "", DzGetGameUI(), "EscMenuBackdrop", 0)
     call DzFrameSetPoint(load_box, JN_FRAMEPOINT_CENTER, DzGetGameUI(), JN_FRAMEPOINT_CENTER, 0.0, 0.05)
@@ -113,18 +114,18 @@ private function Load_Frames takes nothing returns nothing
         set pid = -1
         loop 
         set pid = pid + 1
-        exitwhen pid >= 12
+        exitwhen pid >= 6
             if GetPlayerController(Player(pid)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(pid)) == PLAYER_SLOT_STATE_PLAYING then
                 // 각플
                 if GetLocalPlayer() == Player(pid) then
-                    set temp = Get_Character_Data_Property(pid, i, CHARACTER_DATA_LEVEL)
+                    set temp = Get_Character_Data(pid, i, CHARACTER_DATA_LEVEL)
 
-                    if S2I(temp) > 0 then
+                    if temp > 0 then
                         // 캐릭터 이름 과 레벨
-                        set unit_type = Get_Character_Data_Property(pid, i, CHARACTER_DATA_UNIT_TYPE)
+                        set unit_type = Get_Character_Data(pid, i, CHARACTER_DATA_UNIT_TYPE)
                         set name = Get_Name_From_Unit_Type( unit_type )
-                        set level = Get_Character_Data_Property(pid, i, CHARACTER_DATA_LEVEL)
-                        call DzFrameSetText(load_buttons[i], name + " Level : " + level )
+                        set level = Get_Character_Data(pid, i, CHARACTER_DATA_LEVEL)
+                        call DzFrameSetText(load_buttons[i], name + " Level : " + I2S(level) )
                         set is_empty[i] = false
                         
                         // 캐릭터 아이콘

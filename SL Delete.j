@@ -7,10 +7,11 @@ private function Save_Data_Delete takes nothing returns nothing
     call RemoveUnit(udg_Player_Bag[pid+1])
 
     if GetLocalPlayer() == Player(pid) then
-        call JNSetSaveCode( Get_Map_Id(), Get_User_Id(), Get_Secret_Key(), Get_Characater_Index(Get_Current_Character_Index()), "-1" )
+        call JNObjectCharacterClearField( Get_User_Id() )
+        call JNObjectCharacterSave( Get_Map_Id(), Get_User_Id(), Get_Secret_Key(), Get_Characater_Index( Get_Current_Character_Index() ) )
         set is_save_possible = false
 
-        call BJDebugMsg("캐릭터 " + Get_Name_From_Unit_Type( Get_Character_Data_Property(pid, Get_Current_Character_Index(), CHARACTER_DATA_UNIT_TYPE) ) + "가 삭제되었습니다.")
+        call BJDebugMsg("캐릭터 " + Get_Name_From_Unit_Type( Get_Character_Data(pid, Get_Current_Character_Index(), CHARACTER_DATA_UNIT_TYPE) ) + "가 삭제되었습니다.")
     endif
 endfunction
 

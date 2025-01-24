@@ -1,7 +1,6 @@
 library SaveLoadPreprocess requires SaveLoadLimited
 
-function Get_Img_From_Unit_Type takes string unit_type_str returns string
-    local integer unit_type = S2I(unit_type_str)
+function Get_Img_From_Unit_Type takes integer unit_type returns string
     if unit_type == 'H001' then
         return "BTNHero_A.blp"
     // 쑤 무청
@@ -33,8 +32,7 @@ function Get_Img_From_Unit_Type takes string unit_type_str returns string
     return ""
 endfunction
 
-function Get_Name_From_Unit_Type takes string unit_type_str returns string
-    local integer unit_type = S2I(unit_type_str)
+function Get_Name_From_Unit_Type takes integer unit_type returns string
     local string unit_name
     
     if unit_type == 'H001' then
@@ -128,21 +126,18 @@ private function Load_User_Object takes nothing returns nothing
     endloop
 endfunction
 
-private function User_Resource_Data_Sync takes nothing returns nothing
-    local string sync_str = DzGetTriggerSyncData()
-    local integer pid = S2I( JNStringSplit(sync_str, "#", 0) )
-    local string data_str = JNStringSplit(sync_str, "#", 1)
-    
-    call Set_Resource_Data_String( pid, data_str )
-endfunction
-
 private function User_Character_Data_Sync takes nothing returns nothing
     local string sync_str = DzGetTriggerSyncData()
-    local integer pid = S2I( JNStringSplit(sync_str, "[", 0) )
-    local integer index = S2I( JNStringSplit(sync_str, "[", 1) )
-    local string data_str = JNStringSplit(sync_str, "[", 2)
+    local integer pid = S2I( JNStringSplit(sync_str, "#", 0) )
+    local integer index = S2I( JNStringSplit(sync_str, "#", 1) )
+    local integer field = S2I( JNStringSplit(sync_str, "#", 2) )
+    local integer value = S2I( JNStringSplit(sync_str, "#", 3) )
 
-    call Set_Character_Data_String( pid, index, data_str )
+    call Set_Character_Data( pid, index, field, value )
+endfunction
+
+private function Sync_The_Data takes integer pid, integer index, integer field, integer value returns nothing
+    call DzSyncData( "char", I2S(pid) + "#" + I2S(index) + "#" + I2S(field) + "#" + I2S(value) )
 endfunction
 
 private function User_Character_Data_Register takes integer pid, integer index returns nothing
@@ -161,64 +156,32 @@ private function User_Character_Data_Register takes integer pid, integer index r
     local integer array bag_1_item
     local string str
     
-    
     // =================
     // 캐릭터 정보 로드
     // =================
     
     call JNObjectCharacterInit( Get_Map_Id(), Get_User_Id(), Get_Secret_Key(), Get_Characater_Index(index) )
-    
-    set unit_level = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_LEVEL") 
-    set unit_type = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_TYPE")
-    set unit_exp = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_EXP")
-    set unit_str = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_STR")
-    set unit_agi = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_AGI")
-    set unit_int = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_INT")
-    set unit_hero_state = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_HERO_STATE")
-    set unit_gold = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_GOLD")
-    set unit_lumber = JNObjectCharacterGetInt(Get_User_Id(), "UNIT_LUMBER")
-    
-    set i = -1
-    loop
-    set i = i + 1
-    exitwhen i >= 6
-        set unit_item[6] = JNObjectCharacterGetInt( Get_User_Id(), "UNIT_ITEM" + I2S(i) )
-        set bag_0_item[6] = JNObjectCharacterGetInt( Get_User_Id(), "BAG_0_ITEM" + I2S(i) )
-        set bag_1_item[6] = JNObjectCharacterGetInt( Get_User_Id(), "BAG_1_ITEM" + I2S(i) )
-    endloop
-    
 
-    
-    // ==========================
-    // 캐릭터 정보 스트링 만들기
-    // ==========================
-    
-    set str = I2S(unit_level) + "/" + I2S(unit_type) + "/" + I2S(unit_exp) + "/" + I2S(unit_str) + "/" /*
-    */ + I2S(unit_agi) + "/" + I2S(unit_int) + "/" + I2S(unit_hero_state) + "/" /*
-    */ + I2S(unit_gold) + "/" + I2S(unit_lumber) + "/"
-    
-    set i = -1
-    loop
-    set i = i + 1
-    exitwhen i >= 6
-        set str = str + I2S(unit_item[i]) + "/"
-    endloop
+    call Sync_The_Data( pid, index, CHARACTER_DATA_LEVEL, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_LEVEL") )
+    call Sync_The_Data( pid, index, CHARACTER_DATA_UNIT_TYPE, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_TYPE") )
+    call Sync_The_Data( pid, index, CHARACTER_DATA_EXP, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_EXP") )
+    call Sync_The_Data( pid, index, CHARACTER_DATA_STR, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_STR") )
+    call Sync_The_Data( pid, index, CHARACTER_DATA_AGI, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_AGI") )
+    call Sync_The_Data( pid, index, CHARACTER_DATA_INT, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_INT") )
+    call Sync_The_Data( pid, index, CHARACTER_DATA_HERO_STATE, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_HERO_STATE") )
+    call Sync_The_Data( pid, index, CHARACTER_DATA_GOLD, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_GOLD") )
+    call Sync_The_Data( pid, index, CHARACTER_DATA_LUMBER, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_LUMBER") )
     
     set i = -1
     loop
     set i = i + 1
     exitwhen i >= 6
-        set str = str + I2S(bag_0_item[i]) + "/"
+        call Sync_The_Data( pid, index, CHARACTER_DATA_USER_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_ITEM" + I2S(i)) )
+        call Sync_The_Data( pid, index, CHARACTER_DATA_BAG_0_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "BAG_0_ITEM" + I2S(i)) )
+        call Sync_The_Data( pid, index, CHARACTER_DATA_BAG_1_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "BAG_1_ITEM" + I2S(i)) )
     endloop
     
-    set i = -1
-    loop
-    set i = i + 1
-    exitwhen i >= 6
-        set str = str + I2S(bag_1_item[i]) + "/"
-    endloop
-    
-    call DzSyncData( "char", I2S(pid) + "[" + I2S(index) + "[" + str )
+    call JNObjectCharacterResetCharacter( Get_User_Id() )
 endfunction
 
 private function Upper_Alphabet_Matching takes string char returns string
