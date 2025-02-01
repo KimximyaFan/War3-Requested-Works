@@ -72,19 +72,21 @@ private function User_Custom_Int_Sync takes nothing returns nothing
     local integer GOD_INT3 = S2I( JNStringSplit(sync_str, "#", 5) )
     local integer ITEM_A_COUNT = S2I( JNStringSplit(sync_str, "#", 6) )
     local integer ITEM_B_COUNT = S2I( JNStringSplit(sync_str, "#", 7) )
+    local integer is_revision = S2I( JNStringSplit(sync_str, "#", 8) )
 
     set udg_Player_Drop_INT[pid+1] = drop_int
     set udg_Player_Gold_INT[pid+1] = gold_int
-    set udg_GOD_INT1[pid+1] = GOD_INT1
-    set udg_GOD_INT2[pid+1] = GOD_INT2
-    set udg_GOD_INT3[pid+1] = GOD_INT3
-    set udg_ITEM_A_COUNT[pid+1] = ITEM_A_COUNT
-    set udg_ITEM_B_COUNT[pid+1] = ITEM_B_COUNT
     
+    if is_revision == 0 then
+        set udg_GOD_INT1[pid+1] = GOD_INT1
+        set udg_GOD_INT2[pid+1] = GOD_INT2
+        set udg_GOD_INT3[pid+1] = GOD_INT3
+        set udg_ITEM_A_COUNT[pid+1] = ITEM_A_COUNT
+        set udg_ITEM_B_COUNT[pid+1] = ITEM_B_COUNT
+    endif
 endfunction
 
 private function User_Custom_Int_Register takes integer pid returns nothing
-    local boolean is_data_exist = false
     local string str = ""
     local string drop_int
     local string gold_int
@@ -93,8 +95,11 @@ private function User_Custom_Int_Register takes integer pid returns nothing
     local string GOD_INT3
     local string ITEM_A_COUNT
     local string ITEM_B_COUNT
+    local boolean is_revision = false
     
     call JNObjectUserInit( Get_Map_Id(), Get_User_Id(), Get_Secret_Key(), "0" )
+    
+    set is_revision = JNObjectUserGetBoolean( Get_User_Id(), "REVISION" )
     
     set drop_int = I2S(JNObjectUserGetInt(Get_User_Id(), "user_drop_int"))
     set gold_int = I2S(JNObjectUserGetInt(Get_User_Id(), "user_gold_int"))
@@ -106,6 +111,12 @@ private function User_Custom_Int_Register takes integer pid returns nothing
     
     set str = I2S(pid) + "#" + drop_int + "#" + gold_int + "#" + GOD_INT1 + "#" + GOD_INT2 + "#" + GOD_INT3
     set str = str + "#" + ITEM_A_COUNT + "#" + ITEM_B_COUNT
+    
+    if is_revision == true then
+        set str = str + "#" + "1"
+    else
+        set str = str + "#" + "0"
+    endif
     
     call DzSyncData( "cusint", str )
 endfunction
@@ -142,6 +153,7 @@ endfunction
 
 private function User_Character_Data_Register takes integer pid, integer index returns nothing
     local integer i
+    local boolean is_revision
     local integer unit_level
     local integer unit_type
     local integer unit_exp
@@ -161,7 +173,18 @@ private function User_Character_Data_Register takes integer pid, integer index r
     // =================
     
     call JNObjectCharacterInit( Get_Map_Id(), Get_User_Id(), Get_Secret_Key(), Get_Characater_Index(index) )
-
+    
+    set is_revision = JNObjectCharacterGetBoolean( Get_User_Id(), "REVISION" )
+    
+    if is_revision == true then
+        call Sync_The_Data( pid, index, CHARACTER_DATA_REVISION, 1 )
+        call Sync_The_Data( pid, index, CHARACTER_DATA_GOD_INT1, JNObjectCharacterGetInt(Get_User_Id(), "GOD_INT1") )
+        call Sync_The_Data( pid, index, CHARACTER_DATA_GOD_INT2, JNObjectCharacterGetInt(Get_User_Id(), "GOD_INT2") )
+        call Sync_The_Data( pid, index, CHARACTER_DATA_GOD_INT3, JNObjectCharacterGetInt(Get_User_Id(), "GOD_INT3") )
+        call Sync_The_Data( pid, index, CHARACTER_DATA_ITEM_A_COUNT, JNObjectCharacterGetInt(Get_User_Id(), "ITEM_A_COUNT") )
+        call Sync_The_Data( pid, index, CHARACTER_DATA_ITEM_B_COUNT, JNObjectCharacterGetInt(Get_User_Id(), "ITEM_B_COUNT") )
+    endif
+    
     call Sync_The_Data( pid, index, CHARACTER_DATA_LEVEL, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_LEVEL") )
     call Sync_The_Data( pid, index, CHARACTER_DATA_UNIT_TYPE, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_TYPE") )
     call Sync_The_Data( pid, index, CHARACTER_DATA_EXP, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_EXP") )
@@ -176,9 +199,15 @@ private function User_Character_Data_Register takes integer pid, integer index r
     loop
     set i = i + 1
     exitwhen i >= 6
-        call Sync_The_Data( pid, index, CHARACTER_DATA_USER_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_ITEM" + I2S(i)) )
-        call Sync_The_Data( pid, index, CHARACTER_DATA_BAG_0_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "BAG_0_ITEM" + I2S(i)) )
-        call Sync_The_Data( pid, index, CHARACTER_DATA_BAG_1_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "BAG_1_ITEM" + I2S(i)) )
+        if is_revision == true then
+            call Sync_The_Data( pid, index, CHARACTER_DATA_USER_ITEM_0 + i, IDstring_To_Integer( JNObjectCharacterGetString(Get_User_Id(), "UNIT_ITEM" + I2S(i)) ) )
+            call Sync_The_Data( pid, index, CHARACTER_DATA_BAG_0_ITEM_0 + i, IDstring_To_Integer( JNObjectCharacterGetString(Get_User_Id(), "BAG_0_ITEM" + I2S(i)) ) )
+            call Sync_The_Data( pid, index, CHARACTER_DATA_BAG_1_ITEM_0 + i, IDstring_To_Integer( JNObjectCharacterGetString(Get_User_Id(), "BAG_1_ITEM" + I2S(i)) ) )
+        else
+            call Sync_The_Data( pid, index, CHARACTER_DATA_USER_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "UNIT_ITEM" + I2S(i)) )
+            call Sync_The_Data( pid, index, CHARACTER_DATA_BAG_0_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "BAG_0_ITEM" + I2S(i)) )
+            call Sync_The_Data( pid, index, CHARACTER_DATA_BAG_1_ITEM_0 + i, JNObjectCharacterGetInt(Get_User_Id(), "BAG_1_ITEM" + I2S(i)) )
+        endif
     endloop
     
     call JNObjectCharacterResetCharacter( Get_User_Id() )

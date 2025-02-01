@@ -1,7 +1,6 @@
 library SaveLoadGeneric
 
 globals
-    
     hashtable SLHT = InitHashtable()
     
     integer user_custom_int_0
@@ -18,8 +17,8 @@ globals
     
     private integer character_count = 3
     
-    private string MAP_ID = "TERRA"
-    private string SECRET_KEY = "8f0f09e0-4ff0-44d4-ae73-b3c53ffac16d"
+    private string MAP_ID = "TRA"
+    private string SECRET_KEY = "0cca84aa-5601-4d4f-af10-cee7c3c7a128"
 
     private string user_id
     
@@ -31,6 +30,12 @@ globals
     private string character_index = "character_index"
     private string resource = "resource"
     
+    constant integer CHARACTER_DATA_REVISION = -1
+    constant integer CHARACTER_DATA_GOD_INT1 = -2
+    constant integer CHARACTER_DATA_GOD_INT2 = -3
+    constant integer CHARACTER_DATA_GOD_INT3 = -4
+    constant integer CHARACTER_DATA_ITEM_A_COUNT = -5
+    constant integer CHARACTER_DATA_ITEM_B_COUNT = -6
     
     constant integer CHARACTER_DATA_LEVEL = 0
     constant integer CHARACTER_DATA_UNIT_TYPE = 1
@@ -59,10 +64,6 @@ globals
     constant integer CHARACTER_DATA_BAG_4_ITEM_3 = 24
     constant integer CHARACTER_DATA_BAG_5_ITEM_4 = 25
     constant integer CHARACTER_DATA_BAG_6_ITEM_5 = 26
-    
-    
-    
-    
 endglobals
 
 // ===== Battle Net Check =====

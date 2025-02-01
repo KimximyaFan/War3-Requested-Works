@@ -21,6 +21,16 @@ function Save_Load_Build takes integer pid, integer current_character_index retu
     local integer i
     local item temp_item
     local location loc = Location(unit_start_x, unit_start_y)
+    local integer is_revision = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_REVISION )
+    
+    // 커스텀 인트
+    if is_revision != 0 then
+        set udg_GOD_INT1[pid+1] = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_GOD_INT1 )
+        set udg_GOD_INT2[pid+1] = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_GOD_INT2 )
+        set udg_GOD_INT3[pid+1] = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_GOD_INT3 )
+        set udg_ITEM_A_COUNT[pid+1] = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_ITEM_A_COUNT )
+        set udg_ITEM_B_COUNT[pid+1] = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_ITEM_B_COUNT )
+    endif
     
     // 영웅 유닛 로드
     set u = CreateUnit(Player(pid), unit_type, unit_start_x, unit_start_y, 270)
@@ -43,7 +53,6 @@ function Save_Load_Build takes integer pid, integer current_character_index retu
     exitwhen i >= 6
         set item_type = Get_Character_Data( pid, current_character_index, CHARACTER_DATA_USER_ITEM_0 + i )
         
-        call BJDebugMsg("item_type : " + I2S(item_type))
         
         if item_type != -1 then
             call UnitAddItemToSlotById(u, item_type, i )
@@ -92,6 +101,8 @@ function Save_Load_Build takes integer pid, integer current_character_index retu
     set udg_Sellect_Value[pid+1] = true
     call SetUnitUserData(udg_Player_Hero[pid+1], 0 )
     call PanCameraToTimedLocForPlayer(GetOwningPlayer(udg_Player_Hero[pid+1]),loc, 0 )
+    set udg_ITEM_SET = pid+1
+    call TriggerExecute( gg_trg_ITEM_Set )
     
     call RemoveLocation(loc)
     
